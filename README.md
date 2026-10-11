@@ -155,6 +155,10 @@ About 400 g of ABS in total (621 cm³ of solid model, down 24 % from 821 cm³ af
 | double‑sided foam tape | – | GNSS in its pocket |
 
 ## Electronics layout
+**Wiring diagram:** [interactive version](https://zebgop-ops.github.io/quadbot/wiring.html) (click a wire type to trace it) · source [`docs/wiring.html`](docs/wiring.html)
+
+[![Quadbot wiring diagram](docs/wiring.png)](https://zebgop-ops.github.io/quadbot/wiring.html)
+
 - **Battery**: 3S2P 21700 with a 3S BMS (≥20 A continuous) in the body's bay (pack up to 78 × 68 × 46 mm). Full charge is 12.6 V,
   which is the top of the STS3215‑12V range. Use high‑drain cells (e.g. P45B/40T): 12 servos
   stalling at once is ~30 A.
