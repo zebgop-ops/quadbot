@@ -1,0 +1,133 @@
+{
+ "fall_rate": 0.0,
+ "push_fall_rate": 0.0,
+ "track_v_rms": 0.06662676483392715,
+ "track_yaw_rms": 0.12426885962486267,
+ "v_trot": [
+  0.403,
+  0.006,
+  0.005
+ ],
+ "v_sprint": [
+  0.779,
+  0.005,
+  0.02
+ ],
+ "v_turn": [
+  0.284,
+  0.013,
+  1.951
+ ],
+ "v_sidestep": [
+  0.009,
+  0.28,
+  -0.002
+ ],
+ "v_stop": [
+  0.005,
+  -0.003,
+  0.01
+ ],
+ "v_reverse": [
+  -0.291,
+  0.01,
+  0.009
+ ],
+ "track_trot": 0.0635,
+ "meanerr_trot": 0.0181,
+ "surge_trot": 0.0604,
+ "track_sprint": 0.073,
+ "meanerr_sprint": 0.026,
+ "surge_sprint": 0.0672,
+ "track_turn": 0.0721,
+ "meanerr_turn": 0.0361,
+ "surge_turn": 0.0611,
+ "track_sidestep": 0.0706,
+ "meanerr_sidestep": 0.0292,
+ "surge_sidestep": 0.0628,
+ "track_stop": 0.0131,
+ "meanerr_stop": 0.0084,
+ "surge_stop": 0.0097,
+ "track_reverse": 0.0726,
+ "meanerr_reverse": 0.0284,
+ "surge_reverse": 0.0648,
+ "resp_sprint_s": 0.2799999713897705,
+ "resp_turn_s": 0.32000017166137695,
+ "resp_side_s": 0.38000011444091797,
+ "resp_stop_s": 0.2200002670288086,
+ "rollpitch_rate_rms": 0.243345245718956,
+ "bounce_vz_rms": 0.050839100033044815,
+ "action_rate_rms": 0.19777144491672516,
+ "target_jitter_rms": 0.0911485105752945,
+ "joint_acc_rms": 54.307220458984375,
+ "duty_factor": 0.5131381154060364,
+ "impact_peak_over_weight": 0.7961961417580361,
+ "touchdown_speed_mps": 0.22123424769760985,
+ "touchdown_spike_ratio": 2.7619612268342495,
+ "touchdowns_per_foot_s": 1.8265625,
+ "foot_slip_mps": 0.016330813989043236,
+ "swing_clearance_m": 0.031714003533124924,
+ "sat_trot": [
+  0.086,
+  0.0
+ ],
+ "sat_sprint": [
+  0.237,
+  0.0
+ ],
+ "sat_turn": [
+  0.099,
+  0.0
+ ],
+ "sat_sidestep": [
+  0.08,
+  0.0
+ ],
+ "sat_stop": [
+  0.0,
+  0.0
+ ],
+ "sat_reverse": [
+  0.035,
+  0.0
+ ],
+ "smooth_trot": [
+  0.174,
+  0.037,
+  0.075
+ ],
+ "smooth_sprint": [
+  0.413,
+  0.086,
+  0.141
+ ],
+ "smooth_turn": [
+  0.216,
+  0.051,
+  0.082
+ ],
+ "smooth_sidestep": [
+  0.158,
+  0.03,
+  0.073
+ ],
+ "smooth_stop": [
+  0.052,
+  0.017,
+  0.004
+ ],
+ "smooth_reverse": [
+  0.149,
+  0.023,
+  0.062
+ ],
+ "servo_power_w": 9.304352760314941,
+ "phase_names": [
+  "trot",
+  "sprint",
+  "turn",
+  "sidestep",
+  "stop",
+  "reverse"
+ ]
+}

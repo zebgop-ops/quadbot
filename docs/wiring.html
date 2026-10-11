@@ -1,0 +1,445 @@
+<title>Quadbot Wiring</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@400;500&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+  :root {
+    --paper: #F3F5F4; --surface: #FFFFFF; --ink: #1C2329; --muted: #5D6870; --grid: #E2E8E6; --rule: #B9C3C0;
+    --v12: #C4302B; --v5: #D98200; --v6: #B23A83; --bus: #13808A; --usb: #3558C7; --pwm: #3C8C2E;
+    --gnd: #2A2F33; --csi: #7E8A90; --gnss: #8A5A2B; --warn-bg: #FBEFE3; --warn-ink: #8A4A0C;
+    --display: "Barlow Semi Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+    --body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --paper: #111618; --surface: #1A2124; --ink: #E4ECEA; --muted: #9AA7A9; --grid: #1E272A; --rule: #3A4649;
+      --v12: #FF6A5E; --v5: #FFB13B; --v6: #E07BC0; --bus: #3CC4CE; --usb: #7C98FF; --pwm: #6FCF5C;
+      --gnd: #C9D2D4; --csi: #9AA6AB; --gnss: #D39B63; --warn-bg: #2E2317; --warn-ink: #F2B77A;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --paper: #111618; --surface: #1A2124; --ink: #E4ECEA; --muted: #9AA7A9; --grid: #1E272A; --rule: #3A4649;
+    --v12: #FF6A5E; --v5: #FFB13B; --v6: #E07BC0; --bus: #3CC4CE; --usb: #7C98FF; --pwm: #6FCF5C;
+    --gnd: #C9D2D4; --csi: #9AA6AB; --gnss: #D39B63; --warn-bg: #2E2317; --warn-ink: #F2B77A;
+  }
+
+  body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; }
+  .sheet { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; display: grid; gap: 36px; }
+
+  /* title block, like the corner of a drawing */
+  .titleblock { border: 1.5px solid var(--ink); display: grid; grid-template-columns: 2.2fr repeat(4, minmax(0, 1fr)); background: var(--surface); }
+  .titleblock > div { padding: 10px 14px; border-left: 1px solid var(--rule); display: grid; gap: 2px; align-content: start; }
+  .titleblock > div:first-child { border-left: 0; }
+  .tb-label { font-family: var(--display); font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+  .tb-value { font-family: var(--mono); font-size: 14px; }
+  h1 { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.05; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+  .tb-sub { color: var(--muted); font-size: 15px; }
+  @media (max-width: 760px) {
+    .titleblock { grid-template-columns: 1fr 1fr; }
+    .titleblock > div:first-child { grid-column: 1 / -1; }
+    .titleblock > div { border-left: 0; border-top: 1px solid var(--rule); }
+    .titleblock > div:first-child { border-top: 0; }
+  }
+
+  h2 { font-family: var(--display); font-weight: 600; font-size: 24px; margin: 0 0 4px; letter-spacing: .01em; text-wrap: balance; }
+  .lede { color: var(--muted); max-width: 70ch; margin: 0; }
+  section { display: grid; gap: 14px; }
+
+  /* schematic */
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .legend button { font: 500 13px var(--mono); color: var(--ink); background: var(--surface); border: 1px solid var(--rule); border-radius: 3px; padding: 5px 10px 5px 8px; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+  .legend button[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .legend button:focus-visible, .copy:focus-visible { outline: 2px solid var(--usb); outline-offset: 2px; }
+  .swatch { width: 22px; height: 0; border-top: 4px solid; display: inline-block; }
+  .swatch.dash { border-top-style: dashed; border-top-width: 3px; }
+  .legend .hint { font-size: 13px; color: var(--muted); }
+  .drawing { overflow-x: auto; border: 1.5px solid var(--ink); background: var(--surface); }
+  .drawing svg { display: block; min-width: 1080px; width: 100%; height: auto; }
+  svg text { fill: var(--ink); font-family: var(--body); font-size: 14px; }
+  svg .part-name { font-family: var(--display); font-weight: 600; font-size: 18px; }
+  svg .part-sub { fill: var(--muted); font-size: 13px; }
+  svg .pin { font-family: var(--mono); font-size: 12px; }
+  svg .wire-label { font-family: var(--mono); font-size: 12px; }
+  svg .part { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+  svg .part.soft { stroke: var(--rule); }
+  svg .mini { fill: var(--paper); stroke: var(--rule); stroke-width: 1; }
+  svg .gridline { stroke: var(--grid); stroke-width: 1; }
+  .wire { fill: none; stroke-linecap: round; stroke-linejoin: round; transition: opacity .2s; }
+  .wire.v12 { stroke: var(--v12); stroke-width: 4.5; }
+  .wire.v5 { stroke: var(--v5); stroke-width: 4; }
+  .wire.v6 { stroke: var(--v6); stroke-width: 4; }
+  .wire.bus { stroke: var(--bus); stroke-width: 2.5; }
+  .wire.usb { stroke: var(--usb); stroke-width: 3; }
+  .wire.pwm { stroke: var(--pwm); stroke-width: 2.5; }
+  .wire.gnd { stroke: var(--gnd); stroke-width: 2.5; stroke-dasharray: 7 5; }
+  .wire.csi { stroke: var(--csi); stroke-width: 6; }
+  .wire.gnss { stroke: var(--gnss); stroke-width: 2.5; }
+  .dot { stroke: none; }
+  .dot.v12 { fill: var(--v12); } .dot.v6 { fill: var(--v6); }
+  .lab.v12 { fill: var(--v12); } .lab.v5 { fill: var(--v5); } .lab.v6 { fill: var(--v6); } .lab.bus { fill: var(--bus); }
+  .lab.usb { fill: var(--usb); } .lab.pwm { fill: var(--pwm); } .lab.gnd { fill: var(--gnd); } .lab.csi { fill: var(--csi); } .lab.gnss { fill: var(--gnss); }
+  svg.focusing [data-net] { opacity: .12; }
+  svg.focusing [data-net].on { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .wire { transition: none; } }
+
+  /* tables */
+  .tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 520px), 1fr)); gap: 28px 32px; align-items: start; }
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; background: var(--surface); border: 1px solid var(--rule); }
+  caption { text-align: left; font-family: var(--display); font-weight: 600; font-size: 18px; padding-bottom: 6px; }
+  th { font-family: var(--display); font-weight: 600; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 8px 10px; border-bottom: 1.5px solid var(--ink); white-space: nowrap; }
+  td { padding: 8px 10px; border-top: 1px solid var(--rule); vertical-align: top; }
+  td code, .mono { font-family: var(--mono); font-size: 13px; }
+  .netmark { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+  .ids td, .ids th { text-align: center; font-variant-numeric: tabular-nums; }
+  .ids td:first-child, .ids th:first-child { text-align: left; }
+  .ids td { font-family: var(--mono); }
+
+  .checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-width: 80ch; }
+  .checks li { display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start; }
+  .box { width: 16px; height: 16px; border: 1.5px solid var(--ink); border-radius: 2px; margin-top: 4px; }
+  .warn { background: var(--warn-bg); color: var(--warn-ink); border-left: 4px solid var(--v5); padding: 12px 16px; max-width: 80ch; }
+  .warn strong { color: inherit; }
+  .copy { font: 500 12px var(--mono); background: transparent; color: var(--muted); border: 1px solid var(--rule); border-radius: 3px; padding: 1px 6px; margin-left: 6px; cursor: pointer; }
+</style>
+
+<div class="sheet">
+  <header class="titleblock" aria-label="Drawing title block">
+    <div>
+      <span class="tb-label">Drawing</span>
+      <h1>Quadbot Wiring</h1>
+      <span class="tb-sub">12 × STS3215-12V legs · Jetson Nano 2GB · Betaflight F3 · 2 × DS3218 head</span>
+    </div>
+    <div><span class="tb-label">Rev</span><span class="tb-value">A</span></div>
+    <div><span class="tb-label">Date</span><span class="tb-value">2026-09-24</span></div>
+    <div><span class="tb-label">Supply</span><span class="tb-value">3S2P 21700<br>9.0–12.6 V</span></div>
+    <div><span class="tb-label">Sheet</span><span class="tb-value">1 / 1</span></div>
+  </header>
+
+  <section aria-labelledby="sch">
+    <div>
+      <h2 id="sch">Schematic</h2>
+      <p class="lede">Each coloured power line is a supply pair: plus and minus run together, and every ground meets at the battery negative. Ground-only links are drawn dashed. Click a wire type below to trace it.</p>
+    </div>
+    <div class="legend" role="group" aria-label="Highlight a wire type">
+      <button type="button" data-net="v12" aria-pressed="false"><span class="swatch" style="border-color:var(--v12)"></span>12 V battery</button>
+      <button type="button" data-net="v5" aria-pressed="false"><span class="swatch" style="border-color:var(--v5)"></span>5 V Jetson</button>
+      <button type="button" data-net="v6" aria-pressed="false"><span class="swatch" style="border-color:var(--v6)"></span>6 V head servos</button>
+      <button type="button" data-net="bus" aria-pressed="false"><span class="swatch" style="border-color:var(--bus)"></span>Servo bus data</button>
+      <button type="button" data-net="usb" aria-pressed="false"><span class="swatch" style="border-color:var(--usb)"></span>USB</button>
+      <button type="button" data-net="pwm" aria-pressed="false"><span class="swatch" style="border-color:var(--pwm)"></span>PWM signal</button>
+      <button type="button" data-net="gnd" aria-pressed="false"><span class="swatch dash" style="border-color:var(--gnd)"></span>Ground link</button>
+      <button type="button" data-net="gnss" aria-pressed="false"><span class="swatch" style="border-color:var(--gnss)"></span>UART / I²C</button>
+      <button type="button" data-net="csi" aria-pressed="false"><span class="swatch" style="border-color:var(--csi)"></span>Camera ribbon</button>
+      <span class="hint" id="hint">Showing all wires</span>
+    </div>
+
+    <div class="drawing">
+      <svg id="schematic" viewBox="0 0 1400 810" role="img" aria-labelledby="sch-title sch-desc">
+        <title id="sch-title">Quadbot wiring schematic</title>
+        <desc id="sch-desc">Battery through a switch and fuse to a 12 volt rail. The rail feeds the Betaflight F3 battery pads, whose metered ESC pads feed a servo power switch and a hub that splits to four legs of three STS3215 servos. The rail also feeds a 5 volt buck to the Jetson and a 6 volt BEC to the neck and jaw servos. The Jetson connects by USB to the F3 and the bus servo adapter, by PWM pins 32 and 33 to the head servos, by CSI to the camera, and by UART and I2C to the GNSS module.</desc>
+        <defs>
+          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M20 0H0V20" class="gridline" fill="none"/>
+          </pattern>
+        </defs>
+        <rect width="1400" height="810" fill="url(#grid)"/>
+
+        <!-- ================= wires (drawn first, under the parts) ================= -->
+        <!-- 12 V: battery -> switch -> rail -> F3 / buck / BEC -->
+        <g data-net="v12">
+          <path class="wire v12" d="M200 415H240"/>
+          <path class="wire v12" d="M380 415H420"/>
+          <path class="wire v12" d="M420 120V720"/>
+          <path class="wire v12" d="M420 120H480"/>
+          <path class="wire v12" d="M700 120H760"/>
+          <path class="wire v12" d="M880 120H940"/>
+          <path class="wire v12" d="M420 540H460"/>
+          <path class="wire v12" d="M420 720H460"/>
+          <circle class="dot v12" cx="420" cy="415" r="6"/>
+          <circle class="dot v12" cx="420" cy="540" r="6"/>
+          <circle class="dot v12" cx="420" cy="120" r="6"/>
+          <circle class="dot v12" cx="420" cy="720" r="6"/>
+          <!-- hub to legs (power) -->
+          <path class="wire v12" d="M1110 76H1170"/>
+          <path class="wire v12" d="M1110 146H1170"/>
+          <path class="wire v12" d="M1110 216H1170"/>
+          <path class="wire v12" d="M1110 286H1170"/>
+          <text class="wire-label lab v12" x="204" y="402">12 V</text>
+          <text class="wire-label lab v12" x="428" y="104">battery side</text>
+          <text class="wire-label lab v12" x="702" y="108">metered</text>
+          <text class="wire-label lab v12" x="1116" y="64">12 V</text>
+        </g>
+
+        <!-- servo bus data: hub -> legs, adapter -> hub -->
+        <g data-net="bus">
+          <path class="wire bus" d="M1110 83H1170"/>
+          <path class="wire bus" d="M1110 153H1170"/>
+          <path class="wire bus" d="M1110 223H1170"/>
+          <path class="wire bus" d="M1110 293H1170"/>
+          <path class="wire bus" d="M1010 330V300"/>
+          <text class="wire-label lab bus" x="1116" y="102">DATA</text>
+        </g>
+        <g data-net="gnd">
+          <path class="wire gnd" d="M1040 330V300"/>
+          <text class="wire-label lab gnd" x="1002" y="318" text-anchor="end">DATA + GND only · no V+</text>
+          <!-- Jetson GND to BEC minus -->
+          <path class="wire gnd" d="M880 660V780H525V750"/>
+          <text class="wire-label lab gnd" x="560" y="798">GND: Jetson pin 30 / 34 ↔ BEC −</text>
+        </g>
+
+        <!-- 5 V buck -> Jetson -->
+        <g data-net="v5">
+          <path class="wire v5" d="M590 540H640"/>
+          <text class="wire-label lab v5" x="594" y="528">5 V USB-C</text>
+        </g>
+
+        <!-- 6 V BEC -> neck / jaw -->
+        <g data-net="v6">
+          <path class="wire v6" d="M590 720H1130V645H1170"/>
+          <path class="wire v6" d="M1130 715H1170"/>
+          <circle class="dot v6" cx="1130" cy="715" r="5"/>
+          <text class="wire-label lab v6" x="600" y="708">6 V · ≥ 5 A</text>
+        </g>
+
+        <!-- USB: Jetson -> F3, Jetson -> adapter -->
+        <g data-net="usb">
+          <path class="wire usb" d="M680 440V190"/>
+          <path class="wire usb" d="M860 440V365H940"/>
+          <text class="wire-label lab usb" x="690" y="260">USB · MSP</text>
+          <text class="wire-label lab usb" x="870" y="352">USB</text>
+        </g>
+
+        <!-- PWM: pin 32 -> neck, pin 33 -> jaw -->
+        <g data-net="pwm">
+          <path class="wire pwm" d="M920 625H1170"/>
+          <path class="wire pwm" d="M920 648H1070V695H1170"/>
+          <text class="wire-label lab pwm" x="930" y="617">pin 32 · PWM0</text>
+          <text class="wire-label lab pwm" x="930" y="668">pin 33 · PWM2</text>
+        </g>
+
+        <!-- camera + GNSS -->
+        <g data-net="csi"><path class="wire csi" d="M920 495H1170"/><text class="wire-label lab csi" x="930" y="484">CSI ribbon</text></g>
+        <g data-net="gnss"><path class="wire gnss" d="M920 565H1170"/><text class="wire-label lab gnss" x="930" y="554">UART 8/10 · I²C 3/5 · 3.3 V</text></g>
+
+        <!-- ================= parts ================= -->
+        <g>
+          <rect class="part" x="30" y="360" width="170" height="110" rx="3"/>
+          <text class="part-name" x="44" y="388">Battery</text>
+          <text class="part-sub" x="44" y="410">3S2P 21700 Li-ion</text>
+          <text class="part-sub" x="44" y="430">9.0–12.6 V</text>
+          <text class="pin" x="44" y="455">XT60 · 14 AWG</text>
+        </g>
+        <g>
+          <rect class="part" x="240" y="385" width="140" height="60" rx="3"/>
+          <text class="part-name" x="252" y="410">Main switch</text>
+          <text class="part-sub" x="252" y="431">+ 20 A blade fuse</text>
+        </g>
+        <g>
+          <rect class="part" x="480" y="70" width="220" height="120" rx="3"/>
+          <text class="part-name" x="494" y="96">Betaflight F3 AIO</text>
+          <text class="part-sub" x="494" y="117">IMU (MPU-6000) + 0.5 mΩ shunt</text>
+          <text class="pin" x="494" y="146">BAT +/− in</text>
+          <text class="pin" x="600" y="146">ESC pads out</text>
+          <text class="part-sub" x="494" y="176">flat on body floor, arrow fwd</text>
+        </g>
+        <g>
+          <rect class="part" x="760" y="92" width="120" height="56" rx="3"/>
+          <text class="part-name" x="772" y="116">Servo switch</text>
+          <text class="part-sub" x="772" y="136">leg E-stop</text>
+        </g>
+        <g>
+          <rect class="part" x="940" y="60" width="170" height="240" rx="3"/>
+          <text class="part-name" x="954" y="88">Servo hub</text>
+          <text class="part-sub" x="954" y="110">12 V · GND · DATA</text>
+          <text class="part-sub" x="954" y="130">one feed per leg</text>
+          <text class="pin" x="954" y="170">5264 3-pin:</text>
+          <text class="pin" x="954" y="188">GND · V+ · DATA</text>
+          <text class="part-sub" x="954" y="228">16 AWG in</text>
+          <text class="part-sub" x="954" y="248">18 AWG per leg</text>
+        </g>
+        <!-- legs: 4 chains of 3 servos -->
+        <g>
+          <rect class="part" x="1170" y="40" width="210" height="58" rx="3"/>
+          <text class="part-name" x="1180" y="60" style="font-size:15px">LF · front left</text>
+          <rect class="mini" x="1180" y="68" width="58" height="24" rx="2"/><text class="pin" x="1188" y="85">1 roll</text>
+          <rect class="mini" x="1246" y="68" width="58" height="24" rx="2"/><text class="pin" x="1250" y="85">2 pitch</text>
+          <rect class="mini" x="1312" y="68" width="58" height="24" rx="2"/><text class="pin" x="1318" y="85">3 knee</text>
+
+          <rect class="part" x="1170" y="110" width="210" height="58" rx="3"/>
+          <text class="part-name" x="1180" y="130" style="font-size:15px">RF · front right</text>
+          <rect class="mini" x="1180" y="138" width="58" height="24" rx="2"/><text class="pin" x="1188" y="155">4 roll</text>
+          <rect class="mini" x="1246" y="138" width="58" height="24" rx="2"/><text class="pin" x="1250" y="155">5 pitch</text>
+          <rect class="mini" x="1312" y="138" width="58" height="24" rx="2"/><text class="pin" x="1318" y="155">6 knee</text>
+
+          <rect class="part" x="1170" y="180" width="210" height="58" rx="3"/>
+          <text class="part-name" x="1180" y="200" style="font-size:15px">LR · rear left</text>
+          <rect class="mini" x="1180" y="208" width="58" height="24" rx="2"/><text class="pin" x="1188" y="225">7 roll</text>
+          <rect class="mini" x="1246" y="208" width="58" height="24" rx="2"/><text class="pin" x="1250" y="225">8 pitch</text>
+          <rect class="mini" x="1312" y="208" width="58" height="24" rx="2"/><text class="pin" x="1318" y="225">9 knee</text>
+
+          <rect class="part" x="1170" y="250" width="210" height="58" rx="3"/>
+          <text class="part-name" x="1180" y="270" style="font-size:15px">RR · rear right</text>
+          <rect class="mini" x="1180" y="278" width="58" height="24" rx="2"/><text class="pin" x="1184" y="295">10 roll</text>
+          <rect class="mini" x="1246" y="278" width="58" height="24" rx="2"/><text class="pin" x="1248" y="295">11 pitch</text>
+          <rect class="mini" x="1312" y="278" width="58" height="24" rx="2"/><text class="pin" x="1316" y="295">12 knee</text>
+          <text class="part-sub" x="1170" y="330">daisy-chained: hip roll → hip pitch → knee</text>
+        </g>
+        <g>
+          <rect class="part" x="940" y="330" width="170" height="70" rx="3"/>
+          <text class="part-name" x="954" y="355">Bus servo adapter</text>
+          <text class="part-sub" x="954" y="376">Waveshare (A) / FE-URT-1</text>
+          <text class="pin" x="954" y="393">1 Mbps half-duplex</text>
+        </g>
+        <g>
+          <rect class="part" x="460" y="510" width="130" height="60" rx="3"/>
+          <text class="part-name" x="472" y="535">5 V buck</text>
+          <text class="part-sub" x="472" y="556">≥ 4 A</text>
+        </g>
+        <g>
+          <rect class="part" x="460" y="690" width="130" height="60" rx="3"/>
+          <text class="part-name" x="472" y="715">6 V BEC</text>
+          <text class="part-sub" x="472" y="736">≥ 5 A</text>
+        </g>
+        <g>
+          <rect class="part" x="640" y="440" width="280" height="220" rx="3"/>
+          <text class="pin" x="690" y="458">USB-A</text>
+          <text class="pin" x="870" y="458">USB-A</text>
+          <text class="part-name" x="656" y="490" style="font-size:22px">Jetson Nano 2GB</text>
+          <text class="pin" x="656" y="545">USB-C 5 V in</text>
+          <text class="part-sub" x="656" y="580">MAXN · clocks pinned</text>
+          <text class="pin" x="800" y="500">CSI</text>
+          <text class="pin" x="760" y="570">40-pin header</text>
+          <text class="pin" x="760" y="590">8/10 · 3/5 · 1 · 6</text>
+          <text class="pin" x="760" y="640">32 · 33 · 30/34</text>
+        </g>
+        <g>
+          <rect class="part" x="1170" y="470" width="210" height="50" rx="3"/>
+          <text class="part-name" x="1182" y="493">IMX219 camera</text>
+          <text class="part-sub" x="1182" y="511">behind the left eye</text>
+        </g>
+        <g>
+          <rect class="part" x="1170" y="540" width="210" height="50" rx="3"/>
+          <text class="part-name" x="1182" y="563">BE-222P GNSS</text>
+          <text class="part-sub" x="1182" y="581">+ QMC5883 compass</text>
+        </g>
+        <g>
+          <rect class="part" x="1170" y="610" width="210" height="50" rx="3"/>
+          <text class="part-name" x="1182" y="633">Neck DS3218</text>
+          <text class="pin" x="1182" y="651">sig · + · −</text>
+        </g>
+        <g>
+          <rect class="part" x="1170" y="680" width="210" height="50" rx="3"/>
+          <text class="part-name" x="1182" y="703">Jaw DS3218</text>
+          <text class="pin" x="1182" y="721">sig · + · −</text>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <div class="warn" role="note">
+    <strong>Servo power never goes through the bus adapter.</strong> Run only DATA and GND from the adapter to the hub, and leave its V+ pin unconnected. Twelve servos peak at 10–15 A, far past what the adapter board carries.
+  </div>
+
+  <div class="tables">
+    <div class="tablewrap">
+      <table>
+        <caption>Power</caption>
+        <thead><tr><th>From</th><th>To</th><th>Wire</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td><span class="netmark" style="background:var(--v12)"></span>Battery</td><td>Main switch + 20 A fuse</td><td class="mono">14 AWG</td><td>XT60 at the pack</td></tr>
+          <tr><td><span class="netmark" style="background:var(--v12)"></span>Fuse</td><td>F3 battery pads</td><td class="mono">14 AWG</td><td>Also sets the F3's battery-voltage reading</td></tr>
+          <tr><td><span class="netmark" style="background:var(--v12)"></span>F3 ESC pads</td><td>Servo switch → hub</td><td class="mono">16 AWG</td><td>After the shunt: this is the current the F3 measures</td></tr>
+          <tr><td><span class="netmark" style="background:var(--v12)"></span>Hub</td><td>Each leg's hip-roll servo</td><td class="mono">18 AWG</td><td>One feed per leg; 5264 connectors carry ~3 A, so never chain legs together</td></tr>
+          <tr><td><span class="netmark" style="background:var(--v12)"></span>Battery side</td><td>5 V buck</td><td class="mono">18 AWG</td><td>Before the shunt, so the reading stays locomotion power only</td></tr>
+          <tr><td><span class="netmark" style="background:var(--v5)"></span>5 V buck</td><td>Jetson USB-C</td><td class="mono">USB-C lead</td><td>≥ 4 A; set it to 5.1 V before connecting</td></tr>
+          <tr><td><span class="netmark" style="background:var(--v12)"></span>Battery side</td><td>6 V BEC</td><td class="mono">18 AWG</td><td>Head servos stall near 3 A each</td></tr>
+          <tr><td><span class="netmark" style="background:var(--v6)"></span>6 V BEC</td><td>Neck + jaw servo V+</td><td class="mono">20 AWG</td><td>Never from the Jetson's 5 V pins</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <caption>Jetson connections</caption>
+        <thead><tr><th>Jetson</th><th>To</th><th>Signal</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">USB-C</td><td>5 V buck</td><td>Power in</td></tr>
+          <tr><td class="mono">USB-A</td><td>Betaflight F3</td><td>MSP · <code>/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_COM_Port_206438634634-if00</code><button type="button" class="copy" data-copy="/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_COM_Port_206438634634-if00">copy</button></td></tr>
+          <tr><td class="mono">USB-A</td><td>Bus servo adapter</td><td>STS bus, 1 Mbps · <code>/dev/ttyACM*</code> (Waveshare) or <code>/dev/ttyUSB*</code> (FE-URT-1)</td></tr>
+          <tr><td class="mono">pin 32</td><td>Neck servo signal</td><td>PWM0 · <code>pwmchip0/pwm0</code> · optional 470 Ω in series</td></tr>
+          <tr><td class="mono">pin 33</td><td>Jaw servo signal</td><td>PWM2 · <code>pwmchip0/pwm2</code> · optional 470 Ω in series</td></tr>
+          <tr><td class="mono">pin 30 / 34</td><td>6 V BEC −</td><td>Common ground for the PWM signals</td></tr>
+          <tr><td class="mono">pin 8</td><td>GNSS RX</td><td>UART TX · <code>/dev/ttyTHS1</code></td></tr>
+          <tr><td class="mono">pin 10</td><td>GNSS TX</td><td>UART RX</td></tr>
+          <tr><td class="mono">pin 3 / 5</td><td>Compass SDA / SCL</td><td>I²C bus 1</td></tr>
+          <tr><td class="mono">pin 1 / 6</td><td>GNSS VCC / GND</td><td>3.3 V, check your module's label</td></tr>
+          <tr><td class="mono">CSI</td><td>IMX219 camera</td><td>Ribbon, with a service loop at the neck</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="tablewrap">
+      <table class="ids">
+        <caption>Servo IDs (set before fitting horns)</caption>
+        <thead><tr><th>Leg</th><th>Hip roll</th><th>Hip pitch</th><th>Knee</th></tr></thead>
+        <tbody>
+          <tr><td>LF · front left</td><td>1</td><td>2</td><td>3</td></tr>
+          <tr><td>RF · front right</td><td>4</td><td>5</td><td>6</td></tr>
+          <tr><td>LR · rear left</td><td>7</td><td>8</td><td>9</td></tr>
+          <tr><td>RR · rear right</td><td>10</td><td>11</td><td>12</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <section aria-labelledby="first">
+      <h2 id="first">Before first power-up</h2>
+      <ul class="checks">
+        <li><span class="box" aria-hidden="true"></span><span>Continuity-test every supply pair for shorts, and check polarity at each connector.</span></li>
+        <li><span class="box" aria-hidden="true"></span><span>Set the 5 V buck to 5.1 V and the BEC to 6.0 V on a meter <em>before</em> the Jetson or servos are attached.</span></li>
+        <li><span class="box" aria-hidden="true"></span><span>All grounds meet at the battery negative, including the adapter GND and Jetson pin 30/34.</span></li>
+        <li><span class="box" aria-hidden="true"></span><span>The adapter's V+ is not connected to the servo bus.</span></li>
+        <li><span class="box" aria-hidden="true"></span><span>Servo switch OFF for the first boot. Then turn it on and run <code class="mono">calibrate.py scan</code>, which should find all 12 IDs.</span></li>
+        <li><span class="box" aria-hidden="true"></span><span>Check the F3 shows the pack voltage in <code class="mono">f3_tool.py … info</code> and near 0 A with the servos idle.</span></li>
+      </ul>
+    </section>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var svg = document.getElementById("schematic");
+    var hint = document.getElementById("hint");
+    var buttons = Array.prototype.slice.call(document.querySelectorAll(".legend button"));
+    var active = null;
+    function apply() {
+      var groups = svg.querySelectorAll("[data-net]");
+      for (var i = 0; i < groups.length; i++) {
+        groups[i].classList.toggle("on", groups[i].getAttribute("data-net") === active);
+      }
+      svg.classList.toggle("focusing", !!active);
+      buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.net === active)); });
+      var b = buttons.filter(function (x) { return x.dataset.net === active; })[0];
+      hint.textContent = active ? "Tracing: " + b.textContent.trim() + " (click again to show all)" : "Showing all wires";
+    }
+    buttons.forEach(function (b) {
+      b.addEventListener("click", function () { active = active === b.dataset.net ? null : b.dataset.net; apply(); });
+    });
+    document.querySelectorAll(".copy").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var text = btn.dataset.copy;
+        var done = function () { btn.textContent = "copied"; setTimeout(function () { btn.textContent = "copy"; }, 1500); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, function () { select(btn.previousElementSibling); });
+        } else { select(btn.previousElementSibling); }
+      });
+    });
+    function select(el) {
+      var r = document.createRange(); r.selectNodeContents(el);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    }
+  })();
+</script>

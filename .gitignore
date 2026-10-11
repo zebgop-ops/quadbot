@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+# Blender auto-backups and the stray early save at the top level
+*.blend1
+/quadbot
+# robot run logs (CSV, one per run on the Jetson)
+jetson/logs/
+# camera test shots stay local
+docs/camera/

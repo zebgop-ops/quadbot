@@ -1,0 +1,154 @@
+{
+  "servo_port": "/dev/serial/by-id/REPLACE-servo-adapter",
+  "f3_port": "/dev/serial/by-id/usb-STMicroelectronics_STM32_Virtual_COM_Port_206438634634-if00",
+  "policy": "models/quadbot_cat_policy.npz",
+  "loop_hz": 50,
+  "action_scale": 0.25,
+  "action_filter_alpha": 0.4,
+  "joints": {
+    "LF_hip_roll": {
+      "id": 1,
+      "offset": 2048,
+      "dir": 1
+    },
+    "LF_hip_pitch": {
+      "id": 2,
+      "offset": 2048,
+      "dir": 1
+    },
+    "LF_knee": {
+      "id": 3,
+      "offset": 2048,
+      "dir": 1
+    },
+    "RF_hip_roll": {
+      "id": 4,
+      "offset": 2048,
+      "dir": 1
+    },
+    "RF_hip_pitch": {
+      "id": 5,
+      "offset": 2048,
+      "dir": 1
+    },
+    "RF_knee": {
+      "id": 6,
+      "offset": 2048,
+      "dir": 1
+    },
+    "LR_hip_roll": {
+      "id": 7,
+      "offset": 2048,
+      "dir": 1
+    },
+    "LR_hip_pitch": {
+      "id": 8,
+      "offset": 2048,
+      "dir": 1
+    },
+    "LR_knee": {
+      "id": 9,
+      "offset": 2048,
+      "dir": 1
+    },
+    "RR_hip_roll": {
+      "id": 10,
+      "offset": 2048,
+      "dir": 1
+    },
+    "RR_hip_pitch": {
+      "id": 11,
+      "offset": 2048,
+      "dir": 1
+    },
+    "RR_knee": {
+      "id": 12,
+      "offset": 2048,
+      "dir": 1
+    }
+  },
+  "imu": {
+    "gyro_axes": [
+      0,
+      1,
+      2
+    ],
+    "gyro_signs": [
+      1,
+      -1,
+      -1
+    ],
+    "roll_sign": 1,
+    "pitch_sign": 1,
+    "calibrated": false
+  },
+  "joint_velocity_source": "servo",
+  "safety": {
+    "max_tilt_deg": 50,
+    "max_servo_temp_c": 70,
+    "min_battery_v": 10.2,
+    "max_consecutive_bus_errors": 5,
+    "max_joint_error_rad": 0.8
+  },
+  "commands": {
+    "vx": [
+      -0.5,
+      0.8
+    ],
+    "vy": [
+      -0.3,
+      0.3
+    ],
+    "wz": [
+      -2.0,
+      2.0
+    ],
+    "vx_step": 0.1,
+    "vy_step": 0.05,
+    "wz_step": 0.25,
+    "accel": 1.0
+  },
+  "joystick": {
+    "device": "/dev/input/js0",
+    "axis_vx": 1,
+    "axis_vy": 0,
+    "axis_wz": 3,
+    "invert_vx": true,
+    "invert_vy": true,
+    "invert_wz": true,
+    "deadzone": 0.08,
+    "axis_neck": 4,
+    "invert_neck": false,
+    "button_stop": 0,
+    "button_chomp": 1
+  },
+  "head": {
+    "enabled": true,
+    "pwm_chip": "/sys/class/pwm/pwmchip0",
+    "neck": {
+      "channel": 0,
+      "center_us": 1500,
+      "dir": 1,
+      "us_per_deg": 11.111,
+      "min_deg": -55,
+      "max_deg": 50,
+      "max_speed_dps": 90,
+      "rest_deg": 0
+    },
+    "jaw": {
+      "channel": 2,
+      "center_us": 1500,
+      "dir": 1,
+      "us_per_deg": 11.111,
+      "min_deg": 0,
+      "max_deg": 85,
+      "max_speed_dps": 300,
+      "rest_deg": 0
+    },
+    "stabilize": true,
+    "walk_neck_limit_deg": 30,
+    "neck_step_deg": 10,
+    "chomp_open_deg": 45,
+    "calibrated": false
+  }
+}

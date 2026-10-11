@@ -1,0 +1,18 @@
+# Betaflight 4.0.6 (BETAFLIGHTF3) settings for the quadbot. Apply with:
+#   python3 f3_tool.py PORT apply f3_robot_settings.txt
+# The F3 is only a sensor here (IMU attitude/gyro + battery current); it never arms.
+
+# answer MSP within ~0.5 ms instead of up to 10 ms (default 100 Hz) - the robot loop reads it every 20 ms
+set serial_update_rate_hz = 2000
+
+# battery voltage + current through the board's shunt (servo supply runs through it)
+set battery_meter = ADC
+set current_meter = ADC
+set vbat_scale = 110
+set ibata_scale = 220
+set ibata_offset = 0
+
+# board sits flat on the body floor, arrow forward: IMU axes = body axes
+set align_board_roll = 0
+set align_board_pitch = 0
+set align_board_yaw = 0
