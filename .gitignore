@@ -8,3 +8,5 @@ __pycache__/
 jetson/logs/
 # camera test shots stay local
 docs/camera/
+# superseded renders (pre-cub design), kept locally only
+renders/old/

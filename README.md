@@ -2,6 +2,25 @@
 
 A honey‑coloured cub: a big round head wider than its body, two eyes (the left one is the camera), a button nose, round ears, a back hump over the Jetson, chunky thighs, bean paws and a stub tail. The design critique that drove the look is in `docs/critique_baby_bear.md`.
 
+![The quadbot cub in its stand pose](renders/quadbot_iso.jpg)
+
+### Trained to walk in simulation
+
+![The trained gait on hills, slopes and bumps in Isaac Lab](docs/quadbot_walk.gif)
+
+The final "cat" locomotion policy in Isaac Lab, on the hardest terrain tiles: trot, sprint, a
+2 rad/s turn and a sidestep. The caption shows commanded against actual speed. Full videos:
+[hills and slopes](sim/runs/cat_final/quadbot_cat_terrain.mp4) ·
+[flat course](sim/runs/cat_final/quadbot_cat_course.mp4).
+
+| Side | Front | Top |
+|:---:|:---:|:---:|
+| ![Side view](renders/quadbot_side.jpg) | ![Front view](renders/quadbot_front.jpg) | ![Top view](renders/quadbot_top.jpg) |
+
+![On its test and display stand, legs hanging clear](renders/quadbot_on_stand.jpg)
+
+Renders: `cad/render_blender.py` (Blender Cycles) from the parametric model in `cad/`.
+
 A four-legged robot with 3 joints per leg: hip roll → hip pitch → knee, all STS3215‑12V.
 Every joint uses a **double U‑bracket**: it clamps both the output horn and the idler horn, so the
 servo bearings never carry a cantilevered load. The body in between the joints is a sleeve that

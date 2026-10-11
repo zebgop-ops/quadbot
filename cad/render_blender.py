@@ -1,6 +1,9 @@
 """Render an exported assembly with Blender (headless).
 
-blender -b -P render_blender.py -- ASSEMBLY_DIR OUT_PREFIX
+blender -b -P render_blender.py -- ASSEMBLY_DIR OUT_PREFIX [--quick]
+
+Default: Cycles (GPU if available) with bounce light, soft key + shadowless fill + rim, AgX, so
+the shadow sides keep their detail. --quick: the old fast EEVEE look.
 """
 import json
 import math
@@ -12,6 +15,7 @@ from mathutils import Vector
 
 argv = sys.argv[sys.argv.index("--") + 1:]
 src, out = argv[0], argv[1]
+QUICK = "--quick" in argv
 man = json.load(open(os.path.join(src, "manifest.json")))
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -59,29 +63,64 @@ scene.world = world
 world.use_nodes = True
 bg = next(n for n in world.node_tree.nodes if n.type == "BACKGROUND")
 bg.inputs["Color"].default_value = (0.9, 0.92, 0.95, 1)
-bg.inputs["Strength"].default_value = 0.6
+bg.inputs["Strength"].default_value = 0.6 if QUICK else 0.75
 
-sun = bpy.data.objects.new("sun", bpy.data.lights.new("sun", "SUN"))
-sun.data.energy = 3.5
-sun.data.angle = math.radians(8)
-sun.rotation_euler = (math.radians(40), math.radians(10), math.radians(-35))
-scene.collection.objects.link(sun)
+
+def light(name, energy, rot, angle_deg, shadow=True):
+    o = bpy.data.objects.new(name, bpy.data.lights.new(name, "SUN"))
+    o.data.energy = energy
+    o.data.angle = math.radians(angle_deg)
+    o.data.use_shadow = shadow
+    o.rotation_euler = tuple(math.radians(v) for v in rot)
+    scene.collection.objects.link(o)
+
+
+if QUICK:
+    light("sun", 3.5, (40, 10, -35), 8)
+else:
+    light("key", 3.6, (40, 10, -35), 18)                    # soft key: wide sun = soft shadow edges
+    light("fill", 0.8, (65, 0, 150), 30, shadow=False)     # opens up the shadow side
+    light("rim", 1.2, (-60, 0, 10), 10, shadow=False)      # separates the outline from the floor
 
 cam = bpy.data.objects.new("cam", bpy.data.cameras.new("cam"))
 cam.data.lens = 55
 scene.collection.objects.link(cam)
 scene.camera = cam
 
-try:
-    scene.render.engine = "BLENDER_EEVEE_NEXT"
-except TypeError:
+if QUICK:
     try:
-        scene.render.engine = "BLENDER_EEVEE"
+        scene.render.engine = "BLENDER_EEVEE_NEXT"
     except TypeError:
-        scene.render.engine = "CYCLES"
+        scene.render.engine = "BLENDER_EEVEE"
+    scene.view_settings.view_transform = "Standard"
+else:
+    scene.render.engine = "CYCLES"
+    try:                                                     # GPU if Blender can see one
+        prefs = bpy.context.preferences.addons["cycles"].preferences
+        for dev_type in ("OPTIX", "CUDA", "HIP", "ONEAPI"):
+            try:
+                prefs.compute_device_type = dev_type
+                prefs.get_devices()
+                if any(d.type == dev_type for d in prefs.devices):
+                    for d in prefs.devices:
+                        d.use = d.type == dev_type
+                    scene.cycles.device = "GPU"
+                    print("cycles device:", dev_type)
+                    break
+            except TypeError:
+                continue
+    except Exception as e:
+        print("cycles GPU setup failed, using CPU:", e)
+    scene.cycles.samples = 160
+    scene.cycles.use_denoising = True
+    scene.cycles.max_bounces = 6
+    try:
+        scene.view_settings.view_transform = "AgX"
+        scene.view_settings.look = "AgX - Punchy"
+    except TypeError:
+        scene.view_settings.view_transform = "Filmic"
 scene.render.resolution_x, scene.render.resolution_y = 1600, 1100
 scene.render.film_transparent = False
-scene.view_settings.view_transform = "Standard"
 
 target = Vector((0.0, 0.0, gz * 0.45))
 views = {
